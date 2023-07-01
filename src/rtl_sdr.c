@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <fcntl.h>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -302,6 +303,13 @@ int main(int argc, char **argv)
 		if (!file) {
 			fprintf(stderr, "Failed to open %s\n", filename);
 			goto out;
+		}
+		if (samples_to_read > 0) {
+			int rc = posix_fallocate(fileno(file), 0,
+					samples_to_read*4);
+			if (rc !=0 ) {
+				fprintf(stderr, "fallocate failed  %d\n", rc);
+			}
 		}
 	}
 
