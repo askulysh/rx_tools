@@ -44,7 +44,7 @@
 #define ISFMT(a,b) (!strcmp((a),(b)))
 
 static int do_exit = 0;
-static uint32_t samples_to_read = 0;
+static uint64_t samples_to_read = 0;
 static SoapySDRDevice *dev = NULL;
 static SoapySDRStream *stream = NULL;
 
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 			break;
 		case 'n':
 			// full I/Q pair count
-			samples_to_read = (uint32_t)atofs(optarg);
+			samples_to_read = atol(optarg);
 			break;
 		case 'S':
 			sync_mode = 1;
