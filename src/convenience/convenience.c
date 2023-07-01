@@ -278,10 +278,29 @@ int verbose_auto_gain(SoapySDRDevice *dev, size_t channel)
 			fprintf(stderr, "WARNING: Failed to set AMP tuner gain: %s\n", SoapySDRDevice_lastError());
 		}
 
+	} else {
+		r = SoapySDRDevice_setGainMode(dev, SOAPY_SDR_RX, channel, 1);
+		if (r != 0) {
+			fprintf(stderr, "WARNING: Failed to enable AGC: %s\n",
+					SoapySDRDevice_lastError());
+		} else {
+			fprintf(stderr, "AGC enabled\n");
+		}
 	}
 	// otherwise leave unset, hopefully the driver has good defaults
 	free(driver);
 	return r;
+}
+
+static void diasble_agc(SoapySDRDevice *dev, size_t channel)
+{
+	int r = SoapySDRDevice_setGainMode(dev, SOAPY_SDR_RX, channel, 0);
+	if (r != 0) {
+		fprintf(stderr, "WARNING: Failed to disable AGC: %s\n",
+				SoapySDRDevice_lastError());
+	} else {
+		fprintf(stderr, "AGC disabled\n");
+	}
 }
 
 int verbose_gain_str_set(SoapySDRDevice *dev, char *gain_str, size_t channel)
@@ -297,6 +316,10 @@ int verbose_gain_str_set(SoapySDRDevice *dev, char *gain_str, size_t channel)
 	*/
 
 	if (strchr(gain_str, '=')) {
+		char *driver = SoapySDRDevice_getDriverKey(dev);
+		if (strcmp(driver, "SDRplay") == 0 && strstr(gain_str, "IFGR"))
+			diasble_agc(dev, channel);
+
 		// Set each gain individually (more control)
 		SoapySDRKwargs args = SoapySDRKwargs_fromString(gain_str);
 
@@ -313,6 +336,8 @@ int verbose_gain_str_set(SoapySDRDevice *dev, char *gain_str, size_t channel)
 
 		SoapySDRKwargs_clear(&args);
 	} else {
+		diasble_agc(dev, channel);
+
 		// Set overall gain and let SoapySDR distribute amongst components
 		double value = atof(gain_str);
 		r = SoapySDRDevice_setGain(dev, SOAPY_SDR_RX, channel, value);
