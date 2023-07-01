@@ -138,8 +138,9 @@ int main(int argc, char **argv)
 	char const *input_format = SOAPY_SDR_CS16;
 	char const *output_format = SOAPY_SDR_CU8;
 	char *sdr_settings = NULL;
+	uint32_t bandwidth = 0;
 
-	while ((opt = getopt(argc, argv, "d:f:g:c:a:s:b:n:p:D:SI:F:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "d:f:g:c:a:s:b:n:p:D:SI:F:t:w:")) != -1) {
 		switch (opt) {
 		case 'd':
 			dev_query = optarg;
@@ -192,6 +193,9 @@ int main(int argc, char **argv)
 			break;
 		case 't':
 			sdr_settings = optarg;
+			break;
+		case 'w':
+			bandwidth = atoi(optarg);
 			break;
 		default:
 			usage();
@@ -266,6 +270,9 @@ int main(int argc, char **argv)
 
 	/* Set the frequency */
 	verbose_set_frequency(dev, frequency, channel);
+
+	if (bandwidth)
+		verbose_set_bandwidth(dev, bandwidth, channel);
 
 	if (NULL == gain_str) {
 		 /* Enable automatic gain */
